@@ -1,20 +1,12 @@
 package com.example.todoapp.screens.list
 
 import android.content.Intent
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextInput
-import androidx.compose.ui.test.performTouchInput
 import androidx.test.espresso.intent.Intents.intended
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra
 import com.example.todoapp.annotations.SmokeTest
 import com.example.todoapp.base.BaseTest
-import com.example.todoapp.utils.assertTextDisplayed
-import com.example.todoapp.utils.waitForText
+import com.example.todoapp.screens.details.DetailsScreen
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.core.AllOf.allOf
@@ -22,56 +14,34 @@ import org.junit.Test
 
 @HiltAndroidTest
 class ListScreenSmokeTests : BaseTest() {
+    private val listScreen = ListScreen(composeTestRule)
+    private val detailsScreen = DetailsScreen(composeTestRule)
+
+    val noteTitle = "Test Note"
+    val noteContent = "Test Content"
 
     @SmokeTest
     @Test
     fun createNewNoteViaFAB() {
-        composeTestRule.onNodeWithContentDescription("Create new note")
-            .performClick()
+        listScreen.clickCreateNewNoteFab()
+        detailsScreen.enterNoteTitle(noteTitle)
+            .enterNoteContent(noteContent)
+            .clickSaveNote()
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Note Title")
-            .performTextInput("New Note Title")
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Write your note here...")
-            .performTextInput("New Note Content")
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Save note")
-            .performClick()
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("New Note Title", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("New Note Content", useUnmergedTree = true).assertIsDisplayed()
+        listScreen.assertNoteIsDisplayed(noteTitle, noteContent)
     }
 
     @SmokeTest
     @Test
     fun createNoteViaEmptyStateButton() {
-        composeTestRule.waitForIdle()
+        listScreen.assertNoNotesMessageIsDisplayed()
+            .clickCreateNoteButton()
 
-        composeTestRule.assertTextDisplayed("No notes yet")
-        composeTestRule.onNodeWithText("Create Note").performClick()
+        detailsScreen.enterNoteTitle(noteTitle)
+            .enterNoteContent(noteContent)
+            .clickSaveNote()
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Note Title")
-            .performTextInput("Empty State Note")
-
-        composeTestRule.onNodeWithText("Write your note here...")
-            .performTextInput("Content from empty state")
-
-        composeTestRule.onNodeWithContentDescription("Save note")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Empty State Note", useUnmergedTree = true)
-            .assertIsDisplayed()
+        listScreen.assertNoteIsDisplayed(noteTitle, noteContent)
     }
 
     @SmokeTest
@@ -81,178 +51,77 @@ class ListScreenSmokeTests : BaseTest() {
             insertMultipleTestNotes(3)
         }
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Test Note 1", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeTestRule.onNodeWithText("Test Note 1", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Content for note 1", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Test Note 2", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Content for note 2", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Test Note 3", useUnmergedTree = true).assertIsDisplayed()
-        composeTestRule.onNodeWithText("Content for note 3", useUnmergedTree = true).assertIsDisplayed()
+        listScreen.waitUntilNoteIsDisplayed("Test Note 1")
+            .assertNoteIsDisplayed("Test Note 1", "Content for note 1")
+            .assertNoteIsDisplayed("Test Note 2", "Content for note 2")
+            .assertNoteIsDisplayed("Test Note 3", "Content for note 3")
     }
 
     @SmokeTest
     @Test
     fun navigateToNoteDetails() {
         runBlocking {
-            insertTestNote(title = "Test Note", content = "Test content")
+            insertTestNote(title = noteTitle, content = noteContent)
         }
 
-        composeTestRule.waitForIdle()
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Test Note", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeTestRule.onNodeWithText("Test Note", useUnmergedTree = true)
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.assertTextDisplayed("Test Note")
-        composeTestRule.assertTextDisplayed("Test content")
+       detailsScreen.assertNoteTitleIsDisplayed(noteTitle)
+           .assertNoteContentIsDisplayed(noteContent)
     }
 
     @SmokeTest
     @Test
     fun deleteNoteFromListScreen() {
         runBlocking {
-            insertTestNote(title = "Note to Delete", content = "This note will be deleted")
+            insertTestNote(title = noteTitle, content = noteContent)
         }
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Note to Delete", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeTestRule.onNodeWithText("Note to Delete", useUnmergedTree = true)
-            .assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Note to Delete", useUnmergedTree = true)
-            .performTouchInput {
-                down(center)
-                advanceEventTime(durationMillis = 1000) // Long press duration
-                up()
-            }
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Delete note")
-            .assertIsDisplayed()
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("DELETE")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitForText("Note deleted successfully", timeoutMillis = 3000)
-
-        composeTestRule.onNodeWithText("Note to Delete", useUnmergedTree = true)
-            .assertDoesNotExist()
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .longPressOnNote(noteTitle)
+            .clickDelete()
+            .confirmDeletion()
+            .assertSnackbarIsDisplayed("Note deleted successfully")
+            .assertNoteDoesNotExist(noteTitle)
     }
 
     @SmokeTest
     @Test
     fun starNoteFromListScreen() {
         runBlocking {
-            insertTestNote(title = "Note to Star", content = "Content", isStarred = false)
+            insertTestNote(title = noteTitle, content = noteContent, isStarred = false)
         }
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Note to Star", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeTestRule.onNodeWithContentDescription("Add star", useUnmergedTree = true)
-            .assertIsDisplayed()
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitForText("Note starred", timeoutMillis = 3000)
-        composeTestRule.assertTextDisplayed("Note starred")
-
-        composeTestRule.onNodeWithContentDescription("Remove star", useUnmergedTree = true)
-            .assertIsDisplayed()
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickStarOnNote(isStarred = false)
+            .assertSnackbarIsDisplayed("Note starred")
+            .assertStarIsDisplayed(isStarred = true)
     }
 
     @SmokeTest
     @Test
     fun unstarNoteFromListScreen() {
         runBlocking {
-            insertTestNote(title = "Starred Note", content = "Content", isStarred = true)
+            insertTestNote(title = noteTitle, content = noteContent, isStarred = true)
         }
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Starred Note", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeTestRule.onNodeWithContentDescription("Remove star", useUnmergedTree = true)
-            .assertIsDisplayed()
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitForText("Star removed", timeoutMillis = 3000)
-        composeTestRule.assertTextDisplayed("Star removed")
-
-        composeTestRule.onNodeWithContentDescription("Add star", useUnmergedTree = true)
-            .assertIsDisplayed()
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickStarOnNote(isStarred = true)
+            .assertSnackbarIsDisplayed("Star removed")
+            .assertStarIsDisplayed(isStarred = false)
     }
 
     @SmokeTest
     @Test
     fun shareNoteFromListScreen() {
-        val noteTitle = "Note to Share"
-        val noteContent = "This note will be shared"
-
         runBlocking {
             insertTestNote(title = noteTitle, content = noteContent)
         }
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText(noteTitle, useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
-
-        composeTestRule.onNodeWithText(noteTitle, useUnmergedTree = true)
-            .performTouchInput {
-                down(center)
-                advanceEventTime(durationMillis = 1000)
-                up()
-            }
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Share note")
-            .assertIsDisplayed()
-            .performClick()
-
-        composeTestRule.waitForIdle()
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .longPressOnNote(noteTitle)
+            .clickShare()
 
         // Verify the chooser and the nested SEND intent are correct
         intended(hasAction(Intent.ACTION_CHOOSER))

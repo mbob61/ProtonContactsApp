@@ -1,271 +1,150 @@
 package com.example.todoapp.screens.details
 
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.onAllNodesWithText
-import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithText
-import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextReplacement
 import com.example.todoapp.annotations.RegressionTest
 import com.example.todoapp.base.BaseTest
+import com.example.todoapp.screens.list.ListScreen
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.junit.Test
 
-/**
- * Regression tests for the Details Screen.
- */
 @HiltAndroidTest
-@RegressionTest
 class DetailsScreenRegressionTests : BaseTest() {
 
+    private val listScreen = ListScreen(composeTestRule)
+    private val detailsScreen = DetailsScreen(composeTestRule)
+    val noteTitle = "Test Note"
+    val noteContent = "Test Content"
+
     @Test
+    @RegressionTest
     fun editAndDiscardChanges() {
         runBlocking {
-            insertTestNote(
-                title = "Original Title",
-                content = "Original content"
-            )
+            insertTestNote(title = noteTitle, content = noteContent)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Original Title", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.onNodeWithText("Original Title", useUnmergedTree = true)
-            .performClick()
+        detailsScreen.replaceNoteTitle(noteTitle, "Updated Title")
+            .replaceNoteContent(noteContent, "Updated content")
+            .clickBack()
+            .assertDiscardChangesDialogIsDisplayed()
+            .clickDiscard()
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Original Title")
-            .performTextReplacement("Updated Title")
-
-        composeTestRule.onNodeWithText("Original content")
-            .performTextReplacement("Updated content")
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Back")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Discard Changes?").assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Discard").performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Original Title", useUnmergedTree = true)
-            .assertIsDisplayed()
-        composeTestRule.onNodeWithText("Original content", useUnmergedTree = true)
-            .assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Updated Title", useUnmergedTree = true)
-            .assertDoesNotExist()
+        listScreen.assertNoteIsDisplayed(noteTitle, noteContent)
+            .assertNoteDoesNotExist("Updated Title")
     }
 
     @Test
+    @RegressionTest
     fun editAndCancelDiscard() {
         runBlocking {
-            insertTestNote(
-                title = "Original Title",
-                content = "Original content"
-            )
+            insertTestNote(title = noteTitle, content = noteContent)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Original Title", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.onNodeWithText("Original Title", useUnmergedTree = true)
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Original Title")
-            .performTextReplacement("Updated Title")
-
-        composeTestRule.onNodeWithContentDescription("Back")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Discard Changes?").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Cancel").performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Updated Title").assertIsDisplayed()
+        detailsScreen.replaceNoteTitle(noteTitle, "Updated Title")
+            .clickBack()
+            .assertDiscardChangesDialogIsDisplayed()
+            .clickCancel()
+            .assertNoteTitleIsDisplayed("Updated Title")
     }
 
     @Test
+    @RegressionTest
     fun verifyNoChangesAllowForBackNavigation() {
         runBlocking {
-            insertTestNote(
-                title = "Clean Note",
-                content = "Clean content"
-            )
+            insertTestNote(title = noteTitle, content = noteContent)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Clean Note", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.onNodeWithText("Clean Note", useUnmergedTree = true)
-            .performClick()
+        detailsScreen.clickBack()
+            .assertDiscardChangesDialogDoesNotExist()
 
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Back")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Discard Changes?").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Clean Note", useUnmergedTree = true).assertIsDisplayed()
+        listScreen.assertNoteIsDisplayed(noteTitle)
     }
 
 
     @Test
+    @RegressionTest
     fun verifyChangesPreventBackNavigation() {
         runBlocking {
-            insertTestNote(
-                title = "Clean Note",
-                content = "Clean content"
-            )
+            insertTestNote(title = noteTitle, content = noteContent)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Clean Note", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.onNodeWithText("Clean Note", useUnmergedTree = true)
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Clean content")
-            .performTextReplacement("Updated content")
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Back")
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithText("Discard Changes?").assertExists()
+        detailsScreen.replaceNoteContent(noteTitle, "Updated content")
+            .clickBack()
+            .assertDiscardChangesDialogIsDisplayed()
     }
 
     @Test
+    @RegressionTest
     fun cancelDeleteFromDetailsScreen() {
         runBlocking {
-            insertTestNote(title = "Note to Keep")
+            insertTestNote(title = noteTitle)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Note to Keep", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.onNodeWithText("Note to Keep", useUnmergedTree = true)
-            .performClick()
-
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Delete note").performClick()
-
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("Delete Note").assertIsDisplayed()
-
-        composeTestRule.onNodeWithText("Cancel").performClick()
-
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("Delete Note").assertDoesNotExist()
-        composeTestRule.onNodeWithText("Note to Keep").assertIsDisplayed()
+        detailsScreen.clickDeleteNote()
+            .clickCancel()
+            .assertNoteTitleIsDisplayed(noteTitle)
     }
 
     @Test
+    @RegressionTest
     fun starNoteFromDetailsScreen() {
         runBlocking {
-            insertTestNote(title = "Star Me Detailed", isStarred = false)
+            insertTestNote(title = noteTitle, isStarred = false)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Star Me Detailed", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.onNodeWithText("Star Me Detailed", useUnmergedTree = true)
-            .performClick()
-        composeTestRule.waitForIdle()
+        detailsScreen.clickStar(isStarred = false)
+            .assertStarIsDisplayed(isStarred = true)
+            .clickSaveNote()
 
-        composeTestRule.onNodeWithContentDescription("Add star").performClick()
-
-        composeTestRule.onNodeWithContentDescription("Remove star").assertIsDisplayed()
-
-        composeTestRule.onNodeWithContentDescription("Save note").performClick()
-        composeTestRule.waitForIdle()
-
-        composeTestRule.onNodeWithContentDescription("Remove star", useUnmergedTree = true)
-            .assertIsDisplayed()
+        listScreen.assertStarIsDisplayed(isStarred = true)
     }
 
     @Test
+    @RegressionTest
     fun toggleStarMultipleTimes() {
         runBlocking {
-            insertTestNote(title = "Toggle Star Test")
+            insertTestNote(title = noteTitle)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Toggle Star Test", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
 
-        composeTestRule.onNodeWithContentDescription("Add star", useUnmergedTree = true).performClick()
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithContentDescription("Remove star", useUnmergedTree = true).assertIsDisplayed()
-
-        composeTestRule.onNodeWithContentDescription("Remove star", useUnmergedTree = true).performClick()
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithContentDescription("Add star", useUnmergedTree = true).assertIsDisplayed()
-
-        composeTestRule.onNodeWithContentDescription("Add star", useUnmergedTree = true).performClick()
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithContentDescription("Remove star", useUnmergedTree = true).assertIsDisplayed()
+        detailsScreen.clickStar(isStarred = false)
+            .assertStarIsDisplayed(isStarred = true)
+            .clickStar(isStarred = true)
+            .assertStarIsDisplayed(isStarred = false)
+            .clickStar(isStarred = false)
+            .assertStarIsDisplayed(isStarred = true)
     }
 
     @Test
+    @RegressionTest
     fun navigateBackFromDetails() {
         runBlocking {
-            insertTestNote(title = "Navigate Back Test")
+            insertTestNote(title = noteTitle)
         }
 
-        composeTestRule.waitUntil(timeoutMillis = 5000) {
-            composeTestRule
-                .onAllNodesWithText("Navigate Back Test", useUnmergedTree = true)
-                .fetchSemanticsNodes().isNotEmpty()
-        }
+        listScreen.waitUntilNoteIsDisplayed(noteTitle)
+            .clickNoteWithTitle(noteTitle)
 
-        composeTestRule.onNodeWithText("Navigate Back Test", useUnmergedTree = true)
-            .performClick()
-        composeTestRule.waitForIdle()
+        detailsScreen.clickBack()
 
-        composeTestRule.onNodeWithContentDescription("Back").performClick()
-
-        composeTestRule.waitForIdle()
-        composeTestRule.onNodeWithText("Navigate Back Test", useUnmergedTree = true).assertIsDisplayed()
+        listScreen.assertNoteIsDisplayed(noteTitle)
     }
 }

@@ -21,6 +21,10 @@ android {
         testInstrumentationRunner = "com.example.todoapp.base.HiltTestRunner"
         // Read the test annotation from a Gradle property
         if (project.hasProperty("android.test.runner.annotation")) {
+//            val annotation = project.property("android.test.runner.annotation") as String
+//            if (annotation != "com.example.todoapp.annotations.RegressionTest") {
+//                testInstrumentationRunnerArguments["annotation"] = annotation
+//            }
             testInstrumentationRunnerArguments["annotation"] = project.property("android.test.runner.annotation") as String
         }
     }
