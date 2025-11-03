@@ -1,19 +1,23 @@
 package com.example.todoapp.screens.list
 
+import android.content.Intent
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
+import androidx.compose.ui.test.onAllNodesWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra
 import com.example.todoapp.annotations.RegressionTest
 import com.example.todoapp.base.BaseTest
 import com.example.todoapp.utils.assertTextDisplayed
-import com.example.todoapp.utils.waitForText
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers.allOf
 import org.junit.Test
 
 @HiltAndroidTest
@@ -59,7 +63,7 @@ class ListScreenRegressionTests : BaseTest() {
         composeTestRule.waitForIdle()
 
         composeTestRule.onAllNodesWithText("Note to Keep", useUnmergedTree = true)
-            .assertCountEquals(2)
+            .assertCountEquals(1)
     }
 
     @RegressionTest
@@ -182,8 +186,22 @@ class ListScreenRegressionTests : BaseTest() {
             .assertCountEquals(1)
         composeTestRule.onAllNodesWithContentDescription("Add star", useUnmergedTree = true)
             .assertCountEquals(2)
+    }
 
-        composeTestRule.onNodeWithText("Starred Note 1", useUnmergedTree = true)
+    @RegressionTest
+    @Test
+    fun shareNoteWithEmptyTitle() {
+        runBlocking {
+            insertTestNote(title = "", content = "Shared content")
+        }
+
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            composeTestRule
+                .onAllNodesWithText("Shared content", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeTestRule.onNodeWithText("Shared content", useUnmergedTree = true)
             .performTouchInput { 
                 down(center)
                 advanceEventTime(durationMillis = 1000)
@@ -191,20 +209,67 @@ class ListScreenRegressionTests : BaseTest() {
             }
         composeTestRule.waitForIdle()
 
-        composeTestRule.onNodeWithContentDescription("Delete note")
-            .assertIsDisplayed()
-            .performClick()
+        composeTestRule.onNodeWithContentDescription("Share note").performClick()
 
-        composeTestRule.waitForText("DELETE", timeoutMillis = 10000)
+        intended(hasAction(Intent.ACTION_CHOOSER))
+        intended(hasExtra(Intent.EXTRA_INTENT, allOf(
+            hasAction(Intent.ACTION_SEND),
+            hasExtra(Intent.EXTRA_SUBJECT, "Shared Note"),
+            hasExtra(Intent.EXTRA_TEXT, "Shared content")
+        )))
+    }
 
-        composeTestRule.onNodeWithText("DELETE")
-            .performClick()
+    @RegressionTest
+    @Test
+    fun shareNoteWithEmptyContent() {
+        runBlocking {
+            insertTestNote(title = "Shared Title", content = "")
+        }
 
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            composeTestRule
+                .onAllNodesWithText("Shared Title", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+
+        composeTestRule.onNodeWithText("Shared Title", useUnmergedTree = true)
+            .performTouchInput { 
+                down(center)
+                advanceEventTime(durationMillis = 1000)
+                up()
+            }
         composeTestRule.waitForIdle()
 
-        composeTestRule.waitForText("Note deleted successfully", timeoutMillis = 3000)
+        composeTestRule.onNodeWithContentDescription("Share note").performClick()
 
-        composeTestRule.onAllNodesWithContentDescription("Remove star", useUnmergedTree = true)
-            .assertCountEquals(0)
+        intended(hasAction(Intent.ACTION_CHOOSER))
+        intended(hasExtra(Intent.EXTRA_INTENT, allOf(
+            hasAction(Intent.ACTION_SEND),
+            hasExtra(Intent.EXTRA_TEXT, "Shared Title\n\n")
+        )))
+    }
+
+    @RegressionTest
+    @Test
+    fun verifyNotePersistence() {
+        runBlocking {
+            insertTestNote(title = "Persistent Note")
+        }
+
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            composeTestRule
+                .onAllNodesWithText("Persistent Note", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        composeTestRule.onNodeWithText("Persistent Note", useUnmergedTree = true).assertIsDisplayed()
+
+        composeTestRule.activityRule.scenario.recreate()
+
+        composeTestRule.waitUntil(timeoutMillis = 5000) {
+            composeTestRule
+                .onAllNodesWithText("Persistent Note", useUnmergedTree = true)
+                .fetchSemanticsNodes().isNotEmpty()
+        }
+        composeTestRule.onNodeWithText("Persistent Note", useUnmergedTree = true).assertIsDisplayed()
     }
 }

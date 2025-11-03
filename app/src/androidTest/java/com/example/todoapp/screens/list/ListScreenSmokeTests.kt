@@ -1,5 +1,6 @@
 package com.example.todoapp.screens.list
 
+import android.content.Intent
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithContentDescription
@@ -7,12 +8,16 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.performTouchInput
+import androidx.test.espresso.intent.Intents.intended
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
+import androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra
 import com.example.todoapp.annotations.SmokeTest
 import com.example.todoapp.base.BaseTest
 import com.example.todoapp.utils.assertTextDisplayed
 import com.example.todoapp.utils.waitForText
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.core.AllOf.allOf
 import org.junit.Test
 
 @HiltAndroidTest
@@ -219,19 +224,22 @@ class ListScreenSmokeTests : BaseTest() {
     @SmokeTest
     @Test
     fun shareNoteFromListScreen() {
+        val noteTitle = "Note to Share"
+        val noteContent = "This note will be shared"
+
         runBlocking {
-            insertTestNote(title = "Note to Share", content = "This note will be shared")
+            insertTestNote(title = noteTitle, content = noteContent)
         }
 
         composeTestRule.waitForIdle()
 
         composeTestRule.waitUntil(timeoutMillis = 5000) {
             composeTestRule
-                .onAllNodesWithText("Note to Share", useUnmergedTree = true)
+                .onAllNodesWithText(noteTitle, useUnmergedTree = true)
                 .fetchSemanticsNodes().isNotEmpty()
         }
 
-        composeTestRule.onNodeWithText("Note to Share", useUnmergedTree = true)
+        composeTestRule.onNodeWithText(noteTitle, useUnmergedTree = true)
             .performTouchInput {
                 down(center)
                 advanceEventTime(durationMillis = 1000)
@@ -245,5 +253,13 @@ class ListScreenSmokeTests : BaseTest() {
             .performClick()
 
         composeTestRule.waitForIdle()
+
+        // Verify the chooser and the nested SEND intent are correct
+        intended(hasAction(Intent.ACTION_CHOOSER))
+        intended(hasExtra(Intent.EXTRA_INTENT, allOf(
+            hasAction(Intent.ACTION_SEND),
+            hasExtra(Intent.EXTRA_SUBJECT, noteTitle),
+            hasExtra(Intent.EXTRA_TEXT, "$noteTitle\n\n$noteContent")
+        )))
     }
 }

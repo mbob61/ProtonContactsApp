@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     implementation(libs.androidx.room.paging)
     implementation(libs.core.ktx)
+    implementation(libs.androidx.espresso.intents)
     ksp(libs.androidx.room.compiler)
 
     implementation(libs.hilt.android)
