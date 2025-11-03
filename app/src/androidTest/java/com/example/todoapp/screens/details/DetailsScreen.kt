@@ -36,6 +36,7 @@ class DetailsScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(compos
 
     fun clickSaveNote(): DetailsScreen {
         composeTestRule.onNodeWithContentDescription("Save note").performClick()
+        waitForIdle()
         return this
     }
 

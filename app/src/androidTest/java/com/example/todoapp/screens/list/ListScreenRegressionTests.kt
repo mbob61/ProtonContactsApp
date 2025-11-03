@@ -6,6 +6,7 @@ import androidx.test.espresso.intent.matcher.IntentMatchers.hasAction
 import androidx.test.espresso.intent.matcher.IntentMatchers.hasExtra
 import com.example.todoapp.annotations.RegressionTest
 import com.example.todoapp.base.BaseTest
+import com.example.todoapp.screens.details.DetailsScreen
 import dagger.hilt.android.testing.HiltAndroidTest
 import kotlinx.coroutines.runBlocking
 import org.hamcrest.CoreMatchers.allOf
@@ -15,6 +16,7 @@ import org.junit.Test
 class ListScreenRegressionTests : BaseTest() {
 
     private val listScreen = ListScreen(composeTestRule)
+    private val detailsScreen = DetailsScreen(composeTestRule)
     private val noteTitle = "Note Title"
 
     @RegressionTest
@@ -149,5 +151,46 @@ class ListScreenRegressionTests : BaseTest() {
 
         listScreen.waitUntilNoteIsDisplayed(noteTitle)
             .assertNoteIsDisplayed(noteTitle)
+    }
+
+    @RegressionTest
+    @Test
+    fun fullNoteLifecycle() {
+        val lifecycleNoteTitle = "Lifecycle Note"
+        val updatedLifecycleNoteTitle = "Updated Lifecycle Note"
+
+        listScreen.clickCreateNoteButton()
+        detailsScreen.enterNoteTitle(lifecycleNoteTitle)
+            .enterNoteContent("Content")
+            .clickSaveNote()
+
+        listScreen.waitUntilNoteIsDisplayed(lifecycleNoteTitle)
+            .assertNoteIsDisplayed(lifecycleNoteTitle)
+            .clickStarOnNote(isStarred = false)
+            .assertStarIsDisplayed(isStarred = true)
+
+        listScreen.clickNoteWithTitle(lifecycleNoteTitle)
+        detailsScreen.replaceNoteTitle(lifecycleNoteTitle, updatedLifecycleNoteTitle)
+            .clickSaveNote()
+            .waitForIdle()
+
+        listScreen.waitUntilNoteIsDisplayed(updatedLifecycleNoteTitle)
+            .assertNoteIsDisplayed(updatedLifecycleNoteTitle)
+
+        listScreen.clickNoteWithTitle(updatedLifecycleNoteTitle)
+        detailsScreen.clickDeleteNote().confirmDeletion()
+
+        listScreen.assertNoteDoesNotExist(updatedLifecycleNoteTitle)
+    }
+
+    @RegressionTest
+    @Test
+    fun dateIsFormattedCorrectly() {
+        runBlocking {
+            insertTestNote(title = "Dated Note")
+        }
+
+        listScreen.waitUntilNoteIsDisplayed("Dated Note")
+            .assertTodaysDateIsDisplayed()
     }
 }

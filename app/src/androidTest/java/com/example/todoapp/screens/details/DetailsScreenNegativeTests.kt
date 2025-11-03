@@ -20,7 +20,6 @@ class DetailsScreenNegativeTests : BaseTest() {
     fun deleteOptionNotAvailableForUnsavedNote() {
         listScreen.clickCreateNoteButton()
         detailsScreen.waitForIdle()
-        // Verifying that the delete option is not available
     }
 
     @NegativeTest

@@ -5,19 +5,19 @@
       <SelectionState runConfigName="app">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="ListScreenSmokeTests">
+      <SelectionState runConfigName="DetailsScreenSmokeTests">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="tc005_viewListOfNotes()">
+      <SelectionState runConfigName="createNoteViaEmptyStateButton()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="tc002_verifyEmptyState()">
+      <SelectionState runConfigName="fullNoteLifecycle()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="tc006_verifyEmptyState()">
+      <SelectionState runConfigName="longTextIsTruncated()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
-      <SelectionState runConfigName="tc001_createNewNoteViaFAB()">
+      <SelectionState runConfigName="dateIsFormattedCorrectly()">
         <option name="selectionMode" value="DROPDOWN" />
       </SelectionState>
     </selectionStates>

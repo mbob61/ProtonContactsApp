@@ -10,6 +10,9 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import com.example.todoapp.screens.BaseScreen
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * Represents the List Screen and its interactions.
@@ -27,6 +30,7 @@ class ListScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTe
     }
 
     fun assertNoteIsDisplayed(title: String, content: String? = null): ListScreen {
+        waitUntilNoteIsDisplayed(title)
         composeTestRule.onNodeWithText(title, useUnmergedTree = true).assertIsDisplayed()
         content?.let {
             composeTestRule.onNodeWithText(it, useUnmergedTree = true).assertIsDisplayed()
@@ -142,6 +146,12 @@ class ListScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTe
     fun assertStarredCount(count: Int): ListScreen {
         composeTestRule.onAllNodesWithContentDescription("Remove star", useUnmergedTree = true)
             .assertCountEquals(count)
+        return this
+    }
+
+    fun assertTodaysDateIsDisplayed(): ListScreen {
+        val expectedDate = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(Date())
+        composeTestRule.onNodeWithText(expectedDate, useUnmergedTree = true).assertIsDisplayed()
         return this
     }
 }
