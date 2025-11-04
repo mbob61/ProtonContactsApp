@@ -22,7 +22,7 @@ class ListScreenRegressionTests : BaseTest() {
     @RegressionTest
     @Test
     fun verifyEmptyState() {
-        listScreen.assertNoNotesMessageIsDisplayed()
+        listScreen.assertMessageIsDisplayed("No notes yet")
     }
 
     @RegressionTest

@@ -34,7 +34,7 @@ class ListScreenSmokeTests : BaseTest() {
     @SmokeTest
     @Test
     fun createNoteViaEmptyStateButton() {
-        listScreen.assertNoNotesMessageIsDisplayed()
+        listScreen.assertMessageIsDisplayed("No notes yet")
             .clickCreateNoteButton()
 
         detailsScreen.enterNoteTitle(noteTitle)
@@ -67,8 +67,8 @@ class ListScreenSmokeTests : BaseTest() {
         listScreen.waitUntilNoteIsDisplayed(noteTitle)
             .clickNoteWithTitle(noteTitle)
 
-       detailsScreen.assertNoteTitleIsDisplayed(noteTitle)
-           .assertNoteContentIsDisplayed(noteContent)
+        detailsScreen.assertMessageIsDisplayed(noteTitle)
+            .assertMessageIsDisplayed(noteContent)
     }
 
     @SmokeTest
@@ -82,8 +82,9 @@ class ListScreenSmokeTests : BaseTest() {
             .longPressOnNote(noteTitle)
             .clickDelete()
             .confirmDeletion()
-            .assertSnackbarIsDisplayed("Note deleted successfully")
             .assertNoteDoesNotExist(noteTitle)
+            .assertMessageIsDisplayed("Note deleted successfully")
+
     }
 
     @SmokeTest
@@ -95,8 +96,9 @@ class ListScreenSmokeTests : BaseTest() {
 
         listScreen.waitUntilNoteIsDisplayed(noteTitle)
             .clickStarOnNote(isStarred = false)
-            .assertSnackbarIsDisplayed("Note starred")
             .assertStarIsDisplayed(isStarred = true)
+            .assertMessageIsDisplayed("Note starred")
+
     }
 
     @SmokeTest
@@ -108,8 +110,9 @@ class ListScreenSmokeTests : BaseTest() {
 
         listScreen.waitUntilNoteIsDisplayed(noteTitle)
             .clickStarOnNote(isStarred = true)
-            .assertSnackbarIsDisplayed("Star removed")
             .assertStarIsDisplayed(isStarred = false)
+            .assertMessageIsDisplayed("Star removed")
+
     }
 
     @SmokeTest

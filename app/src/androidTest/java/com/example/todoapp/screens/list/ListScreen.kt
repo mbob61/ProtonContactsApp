@@ -19,6 +19,11 @@ import java.util.Locale
  */
 class ListScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTestRule) {
 
+    override fun assertMessageIsDisplayed(text: String): ListScreen {
+        super.assertMessageIsDisplayed(text)
+        return this
+    }
+
     fun clickCreateNewNoteFab(): ListScreen {
         composeTestRule.onNodeWithContentDescription("Create new note").performClick()
         return this
@@ -35,11 +40,6 @@ class ListScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTe
         content?.let {
             composeTestRule.onNodeWithText(it, useUnmergedTree = true).assertIsDisplayed()
         }
-        return this
-    }
-
-    fun assertNoNotesMessageIsDisplayed(): ListScreen {
-        composeTestRule.onNodeWithText("No notes yet").assertIsDisplayed()
         return this
     }
 
@@ -95,14 +95,6 @@ class ListScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTe
         val contentDescription = if (isStarred) "Remove star" else "Add star"
         composeTestRule.onAllNodesWithContentDescription(contentDescription, useUnmergedTree = true)[0]
             .performClick()
-        return this
-    }
-
-    fun assertSnackbarIsDisplayed(text: String): ListScreen {
-        composeTestRule.waitUntil(timeoutMillis = 3000) {
-            composeTestRule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
-        }
-        composeTestRule.onNodeWithText(text).assertIsDisplayed()
         return this
     }
 

@@ -44,18 +44,16 @@ class DetailsScreenSmokeTests : BaseTest() {
 
         listScreen.waitUntilNoteIsDisplayed(noteTitle)
             .clickNoteWithTitle(noteTitle)
+            .waitForIdle()
 
-        detailsScreen.waitForIdle()
-        detailsScreen.assertNoteTitleIsDisplayed(noteTitle)
+        detailsScreen.assertMessageIsDisplayed(noteTitle)
             .clickDeleteNote()
+            .assertMessageIsDisplayed("Delete Note")
+            .confirmDeletion()
             .waitForIdle()
 
-        listScreen.assertSnackbarIsDisplayed("Delete Note")
-
-        detailsScreen.confirmDeletion()
-            .waitForIdle()
-
-        listScreen.assertNoteDoesNotExist("Note to Delete")
+        listScreen.assertNoteDoesNotExist(noteTitle)
+            .assertMessageIsDisplayed("Note deleted successfully")
     }
 
     @SmokeTest

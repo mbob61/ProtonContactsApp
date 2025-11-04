@@ -14,6 +14,11 @@ import com.example.todoapp.screens.BaseScreen
  */
 class DetailsScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(composeTestRule) {
 
+    override fun assertMessageIsDisplayed(text: String): DetailsScreen {
+        super.assertMessageIsDisplayed(text)
+        return this
+    }
+
     fun enterNoteTitle(title: String): DetailsScreen {
         composeTestRule.onNodeWithText("Note Title").performTextInput(title)
         return this
@@ -36,22 +41,16 @@ class DetailsScreen(composeTestRule: ComposeContentTestRule) : BaseScreen(compos
 
     fun clickSaveNote(): DetailsScreen {
         composeTestRule.onNodeWithContentDescription("Save note").performClick()
-        waitForIdle()
-        return this
-    }
-
-    fun assertNoteTitleIsDisplayed(title: String): DetailsScreen {
-        composeTestRule.onNodeWithText(title).assertIsDisplayed()
-        return this
-    }
-
-    fun assertNoteContentIsDisplayed(content: String): DetailsScreen {
-        composeTestRule.onNodeWithText(content).assertIsDisplayed()
         return this
     }
 
     fun clickDeleteNote(): DetailsScreen {
         composeTestRule.onNodeWithContentDescription("Delete note").performClick()
+        return this
+    }
+
+    fun assertDeleteNoteDoesNotExist(): DetailsScreen {
+        composeTestRule.onNodeWithContentDescription("Delete note").assertDoesNotExist()
         return this
     }
 

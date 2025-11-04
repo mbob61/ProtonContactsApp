@@ -19,15 +19,15 @@ class DetailsScreenNegativeTests : BaseTest() {
     @Test
     fun deleteOptionNotAvailableForUnsavedNote() {
         listScreen.clickCreateNoteButton()
-        detailsScreen.waitForIdle()
+        detailsScreen.assertDeleteNoteDoesNotExist()
     }
 
     @NegativeTest
     @Test
-    fun createNoteWithEmptyTitleAndContent() {
+    fun cannotCreateNoteWithEmptyTitleAndContent() {
         listScreen.clickCreateNoteButton()
         detailsScreen.clickSaveNote()
-        listScreen.assertSnackbarIsDisplayed("Cannot save empty note. Please add a title or content.")
+            .assertMessageIsDisplayed("Cannot save empty note. Please add a title or content.")
     }
 
     @NegativeTest
@@ -42,6 +42,6 @@ class DetailsScreenNegativeTests : BaseTest() {
         detailsScreen.replaceNoteTitle(noteTitle, "")
             .replaceNoteContent(noteContent, "")
             .clickSaveNote()
-        listScreen.assertSnackbarIsDisplayed("Cannot save empty note. Please add a title or content.")
+            .assertMessageIsDisplayed("Cannot save empty note. Please add a title or content.")
     }
 }

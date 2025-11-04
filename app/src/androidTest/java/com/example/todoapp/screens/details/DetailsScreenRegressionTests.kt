@@ -49,12 +49,12 @@ class DetailsScreenRegressionTests : BaseTest() {
             .clickBack()
             .assertDiscardChangesDialogIsDisplayed()
             .clickCancel()
-            .assertNoteTitleIsDisplayed("Updated Title")
+            .assertMessageIsDisplayed("Updated Title")
     }
 
     @Test
     @RegressionTest
-    fun verifyNoChangesAllowForBackNavigation() {
+    fun verifyNoChangesAllowsForBackNavigation() {
         runBlocking {
             insertTestNote(title = noteTitle, content = noteContent)
         }
@@ -96,7 +96,7 @@ class DetailsScreenRegressionTests : BaseTest() {
 
         detailsScreen.clickDeleteNote()
             .clickCancel()
-            .assertNoteTitleIsDisplayed(noteTitle)
+            .assertMessageIsDisplayed(noteTitle)
     }
 
     @Test
